@@ -1,0 +1,184 @@
+USE [cow_opti_new]
+GO
+/****** Object:  StoredProcedure [dbo].[sp_cowcalendar1]    Script Date: 07/17/2017 02:49:17 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- =============================================
+-- Author:		<kira,cow calendar>
+-- Create date: <2014/10/2>
+-- Description:	<table cowsex>
+-- =============================================
+ALTER  PROCEDURE [dbo].[sp_cowcalendar1] 
+	-- Add the parameters for the stored procedure here
+	@farmID varchar(5)
+AS
+BEGIN
+	Create Table #cowsex_tmp (
+	統一編號 varchar(18),
+    a0 datetime,
+    )
+insert into #cowsex_tmp  (統一編號 ,a0)    
+select 統一編號+'('+場內編號+')' as 統一編號,max(配種日期) as 日期 from performance_exam_log where 酪農代號=@farmID and datediff(d,配種日期,SYSDATETIME())<300 group by 統一編號+'('+場內編號+')'  order by 日期 desc
+--select * from #cowsex_tmp
+
+Create Table #cow_tmp (
+	日期 datetime,
+	統一編號 varchar(18),
+    說明 varchar(2),
+    )
+    
+    insert into #cow_tmp(日期,統一編號,說明)
+    select a0 as 日期,統一編號,'a0' as 說明 from #cowsex_tmp
+    
+    insert into #cow_tmp(日期,統一編號,說明)
+	SELECT  DATEADD(day, 18, a0) AS a1,統一編號, 'a1' as 說明 from #cowsex_tmp
+	insert into #cow_tmp(日期,統一編號,說明)
+	SELECT  DATEADD(day, 19, a0) AS a2,統一編號, 'a2' as 說明 from #cowsex_tmp
+	insert into #cow_tmp(日期,統一編號,說明)
+	SELECT  DATEADD(day, 20, a0) AS a3,統一編號, 'a3' as 說明 from #cowsex_tmp	
+	insert into #cow_tmp(日期,統一編號,說明)
+	SELECT  DATEADD(day, 21, a0) AS a4,統一編號, 'a4' as 說明 from #cowsex_tmp	
+	insert into #cow_tmp(日期,統一編號,說明)
+	SELECT  DATEADD(day, 22, a0) AS a5,統一編號, 'a5' as 說明 from #cowsex_tmp	
+	insert into #cow_tmp(日期,統一編號,說明)
+	SELECT  DATEADD(day, 23, a0) AS a6,統一編號, 'a6' as 說明 from #cowsex_tmp
+	
+	insert into #cow_tmp(日期,統一編號,說明)
+	SELECT  DATEADD(day, 39, a0) AS b1,統一編號, 'b1' as 說明 from #cowsex_tmp
+	insert into #cow_tmp(日期,統一編號,說明)
+	SELECT  DATEADD(day, 40, a0) AS b2,統一編號, 'b2' as 說明 from #cowsex_tmp
+	insert into #cow_tmp(日期,統一編號,說明)
+	SELECT  DATEADD(day, 41, a0) AS b3,統一編號, 'b3' as 說明 from #cowsex_tmp	
+	insert into #cow_tmp(日期,統一編號,說明)
+	SELECT  DATEADD(day, 42, a0) AS b4,統一編號, 'b4' as 說明 from #cowsex_tmp	
+	insert into #cow_tmp(日期,統一編號,說明)
+	SELECT  DATEADD(day, 43, a0) AS b5,統一編號, 'b5' as 說明 from #cowsex_tmp	
+	insert into #cow_tmp(日期,統一編號,說明)
+	SELECT  DATEADD(day, 44, a0) AS b6,統一編號, 'b6' as 說明 from #cowsex_tmp
+	
+	insert into #cow_tmp(日期,統一編號,說明)
+	SELECT  DATEADD(day, 60, a0) AS c1,統一編號, 'c1' as 說明 from #cowsex_tmp
+	insert into #cow_tmp(日期,統一編號,說明)
+	SELECT  DATEADD(day, 220, a0) AS c2,統一編號, 'c2' as 說明 from #cowsex_tmp
+	insert into #cow_tmp(日期,統一編號,說明)
+	SELECT  DATEADD(day, 266, a0) AS c3,統一編號, 'c3' as 說明 from #cowsex_tmp	
+	insert into #cow_tmp(日期,統一編號,說明)
+	SELECT  DATEADD(day, 280, a0) AS c4,統一編號, 'c4' as 說明 from #cowsex_tmp
+
+   Create Table #xx_tmp (
+	xdate datetime,
+    x0 varchar(4000),
+    x1 varchar(4000),
+    x2 varchar(4000),
+    x3 varchar(4000),
+    x4 varchar(4000),
+    x5 varchar(4000),
+    x6 varchar(4000)
+    )
+    
+    insert into #xx_tmp(xdate,x0,x1,x2,x3,x4,x5,x6)
+	select distinct(日期),'' as x0,'' as x1,'' as x2,'' as x3,'' as x4,'' as x5 ,'' as x6 from #cow_tmp
+	
+	--select * from #xx_tmp
+	
+	DECLARE @a nvarchar(22) 
+	DECLARE @b nvarchar(2)
+	DECLARE @c nvarchar(100) 
+	DECLARE @MyCursor CURSOR
+
+	--指定啟用了效能最佳化的 FORWARD_ONLY、READ_ONLY 資料指標
+	SET @MyCursor = CURSOR FAST_FORWARD
+
+	--假設TableA中有100筆，則下列的語法就會直接傳回100筆
+	FOR 
+	select 日期 as a,說明 as b,統一編號 as c from #cow_tmp
+	--開啟指標
+	OPEN @MyCursor
+
+	--取得第一筆的值放到@colA及@colB
+	FETCH NEXT FROM @MyCursor 
+	INTO @a,@b,@c
+	
+	--select * from #xx_tmp where xdate=@a
+	-- @@FETCH_STATUS=回針對連接目前開啟的任何資料指標而發出的最後一個資料指標 FETCH 陳述式的狀態
+	--傳回值
+	--  0  FETCH 陳述式成功。
+	-- -1 FETCH 陳述式失敗，或資料列已超出結果集。
+	-- -2 遺漏提取的資料列。
+
+	--開始繞迴圈
+	WHILE @@FETCH_STATUS = 0
+
+	BEGIN
+	--PRINT @a   
+	--PRINT @b 
+	--PRINT @c 
+		if @b='a0'
+		BEGIN
+		UPDATE #xx_tmp 
+		SET x0 =x0+'<A HREF=cowcalendar2.asp?cowid='+@c+'>'+@c+' </A>'+'</br>' 
+		WHERE #xx_tmp.xdate=@a
+		end
+	else
+	if @b='a1' or @b='a2' or @b='a3' or @b='a4' or @b='a5' or @b='a6'
+		BEGIN
+		UPDATE #xx_tmp 
+		SET x1 =x1+'<A HREF=cowcalendar2.asp?cowid='+@c+'>'+@c+' </A>'+'</br>'  
+		WHERE #xx_tmp.xdate=@a
+		end
+		else
+		
+	if @b='b1' or @b='b2' or @b='b3' or @b='b4' or @b='b5' or @b='b6'
+		BEGIN
+		UPDATE #xx_tmp 
+		SET x2 =x2+'<A HREF=cowcalendar2.asp?cowid='+@c+'>'+@c+' </A>'+'</br>'  
+		WHERE #xx_tmp.xdate=@a
+		end
+		else
+		
+	if @b='c1'
+		BEGIN
+		UPDATE #xx_tmp 
+		SET x3 =x3+'<A HREF=cowcalendar2.asp?cowid='+@c+'>'+@c+' </A>'+'</br>'  
+		WHERE #xx_tmp.xdate=@a
+		end
+	else
+		
+	if @b='c2' 
+		BEGIN
+		UPDATE #xx_tmp 
+		SET x4 =x4+'<A HREF=cowcalendar2.asp?cowid='+@c+'>'+@c+' </A>'+'</br>' 
+		WHERE #xx_tmp.xdate=@a
+		end
+	else
+	
+	if @b='c3' 
+		BEGIN
+		UPDATE #xx_tmp 
+		SET x5 =x5+'<A HREF=cowcalendar2.asp?cowid='+@c+'>'+@c+') </A>'+'</br>'  
+		WHERE #xx_tmp.xdate=@a
+		end
+	else
+	if @b='c4' 
+		BEGIN
+		UPDATE #xx_tmp 
+		SET x6 =x6+'<A HREF=cowcalendar2.asp?cowid='+@c+'>'+@c+' </A>'+'</br>'  
+		WHERE #xx_tmp.xdate=@a
+		end
+		
+	----取得下一筆記錄的colA及colB
+	FETCH NEXT FROM @MyCursor 
+	INTO @a,@b,@c
+
+	END
+
+	CLOSE @MyCursor 
+	DEALLOCATE @MyCursor 
+	
+	
+	select * from #xx_tmp order by xdate
+END
+
